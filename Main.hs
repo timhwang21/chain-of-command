@@ -1,7 +1,9 @@
 module Main where
 
+import           Data.Function      (on)
 import           Data.List          (intercalate, isPrefixOf, sortBy)
 import           Data.Map           (Map, empty, insertWith, toList)
+import           Data.Ord           (Down (..))
 import           System.Directory   (canonicalizePath, getHomeDirectory)
 import           System.Environment (getArgs)
 import           System.FilePath    (joinPath)
@@ -34,12 +36,12 @@ sequencesToCountMap = foldr (\s m -> insertWith (+) s 1 m) empty
 
 -- | Transform count to list sorted by occurrence
 countMapToSortedList :: Map [a] Int -> [([a], Int)]
-countMapToSortedList = sortBy(\(_, a) (_, b) -> compare b a) . toList
+countMapToSortedList = sortBy(compare `on` Down . snd) . toList
 
 -- | Remove sequences that occur less than n times
 -- These are also noise
 filterLowCounts :: Int -> [([a], Int)] -> [([a], Int)]
-filterLowCounts count = filter (\(_, n) -> n > count)
+filterLowCounts count = filter ((> count) . snd)
 
 -- | Pretty-prints sorted list of sequences
 prettyPrint :: [([String], Int)] -> String
