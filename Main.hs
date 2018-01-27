@@ -1,5 +1,6 @@
 module Main where
 
+import           Data.Char          (isSpace)
 import           Data.Function      (on)
 import           Data.List          (intercalate, isPrefixOf, sortBy)
 import           Data.Map           (Map, empty, insertWith, toList)
@@ -12,6 +13,10 @@ import           System.FilePath    (joinPath)
 -- Commands are retrieved by taking first n words of a line
 parseHistory :: Int -> String -> [String]
 parseHistory n = map (unwords . take n . words) . lines
+
+-- | Remove blank entries from history
+filterWhitespace :: [String] -> [String]
+filterWhitespace = filter (not . all isSpace)
 
 -- | Map commands list into list of sequences
 sequencify :: Int -> [a] -> [[a]]
@@ -49,7 +54,7 @@ prettyPrint = intercalate "\n" . map (\(s, n) -> intercalate " > " s ++ ": " ++ 
 
 -- | Final composed function
 countCommonSequences :: Int -> String -> String
-countCommonSequences runLength = prettyPrint . filterLowCounts 1 . countMapToSortedList . sequencesToCountMap . removeDupeSequences . sequencify runLength . parseHistory 2
+countCommonSequences runLength = prettyPrint . filterLowCounts 1 . countMapToSortedList . sequencesToCountMap . removeDupeSequences . sequencify runLength . filterWhitespace . parseHistory 2
 
 -- | Helper to resolve paths with tildes
 -- Is there really not a library for this?
