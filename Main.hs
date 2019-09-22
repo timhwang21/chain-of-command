@@ -50,7 +50,7 @@ filterLowCounts count = filter ((> count) . snd)
 
 -- | Pretty-prints sorted list of sequences
 prettyPrint :: [([String], Int)] -> String
-prettyPrint = intercalate "\n" . map (\(s, n) -> intercalate " > " s ++ ": " ++ show n)
+prettyPrint = intercalate "\n" . map (\(s, n) -> intercalate " → " s ++ ": " ++ show n)
 
 -- | Final composed function
 countCommonSequences :: Int -> String -> String
