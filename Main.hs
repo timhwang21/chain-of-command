@@ -7,7 +7,9 @@ import           Data.Map           (Map, empty, insertWith, toList)
 import           Data.Ord           (Down (..))
 import           System.Directory   (canonicalizePath, getHomeDirectory)
 import           System.Environment (getArgs)
+import           System.Exit
 import           System.FilePath    (joinPath)
+import           System.IO
 
 -- | Converts .bash_history or similar to list of commands
 -- Commands are retrieved by taking first n words of a line
@@ -69,6 +71,12 @@ main :: IO ()
 main = do
     -- TODO replace this with command line flag
     -- TODO make filterLowCounts and parseHistory also configurable via flags
-    [path, runLength] <- getArgs
-    file <- readFile =<< canonicalizePath =<< makeAbsolute path
-    putStrLn $ countCommonSequences (read runLength) file
+    args <- getArgs
+    case args of
+      [path, runLength] -> do
+        file <- readFile =<< canonicalizePath =<< makeAbsolute path
+        putStrLn $ countCommonSequences (read runLength) file
+        exitWith ExitSuccess
+      _ -> do
+        hPutStrLn stderr "Error: Values must be provided for `path` and `runLength`."
+        exitWith (ExitFailure 1)
