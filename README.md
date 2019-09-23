@@ -1,5 +1,7 @@
 # Chain of Command
 
+[![asciicast](https://asciinema.org/a/eatpLhfcSLxYx2bMJRATnjhGF.svg)](https://asciinema.org/a/eatpLhfcSLxYx2bMJRATnjhGF)
+
 Analyzes your `.bash_history` or similar file to identify commonly reoccurring sequences and workflows that may benefit from extraction into functions or aliases.
 
 ## Usage
