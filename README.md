@@ -55,6 +55,14 @@ Number of words to pull from commands for analysis.
 
 Defaults to `2`.
 
-## TODO
+## Development
+
+### Build
+
+```shell
+ghc -o bin/chain-of-command Main.hs
+```
+
+### TODO
 
 * [x] Change CLI arguments into flags
