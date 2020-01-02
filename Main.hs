@@ -51,8 +51,7 @@ options =
 exitWithError :: String -> IO a
 exitWithError m = die (m ++ usageInfo "Usage: coc [options] [input]" options)
 
--- | Translates argv into an `Option` record and grabs file path.
--- We use the first non-option as the file path and ignore the rest.
+-- | Translates argv into an `Option` record
 parseOptions :: [String] -> IO Options
 parseOptions argv = case getOpt RequireOrder options argv of
   (actions, _, []    ) -> return (foldl (flip id) defaultOptions actions)
@@ -98,8 +97,13 @@ filterLowCounts count = filter ((>= count) . snd)
 
 -- | Pretty-prints sorted list of sequences
 prettyPrint :: [([String], Int)] -> String
-prettyPrint =
-  intercalate "\n" . map (\(s, n) -> intercalate " → " s ++ ": " ++ show n)
+prettyPrint = intercalate "\n"
+  . map (\(s, n) -> intercalate " → " (map padRight s) ++ ": " ++ show n)
+ where
+  padRight s = if length s >= maxLen
+    then take (maxLen - 1) s ++ "…"
+    else take maxLen $ s ++ repeat ' '
+    where maxLen = 16
 
 -- | Final composed function
 countCommonSequences :: Options -> String -> String
