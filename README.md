@@ -7,44 +7,54 @@ Analyzes your `.bash_history` or similar file to identify commonly reoccurring s
 ## Usage
 
 ```shell
-runhaskell Main.hs [path] [runLength]
+./bin/chain-of-command ~/.bash_history
 ```
 
 ## Sample Output
 
 ```shell
-runhaskell Main.hs ~/.bash_history 1 | head -5
-# tig: 92
-# vim: 31
-# ls: 25
-# git checkout: 22
-# clear: 15
+./bin/chain-of-command ~/.bash_history | head -5
+# v → tig: 214
+# git fetch → grom: 171
+# tig → v: 96
+# tig → amend: 79
+# tig → git fetch: 44
 
-runhaskell Main.hs ~/.bash_history 2 | head -5
-# git checkout > tig: 10
-# tig > git checkout: 9
-# tig > git push: 9
-# git pull > tig: 8
-# gs > tig: 7
+./bin/chain-of-command ~/.bash_history --runLength=5 | head -5
+# tig → amend → tig → amend → tig: 7
+# git fetch → grom → gp -f → v → tig: 6
+# tig → git stash → gch master → git fetch → grom: 6
+# tig → v → tig → v → tig: 6
+# tig → amend → git fetch → grom → gp -f: 5
 
-runhaskell Main.hs ~/.bash_history 3 | head -5
-# tig > git checkout > tig: 7
-# git checkout > tig > tig: 4
-# git pull > git pull > tig: 3
-# git pull > tig > git push: 3
-# gs > tig > git reset: 3
+./bin/chain-of-command ~/.bash_history --minCount=15 | tail -5
+# tig → ga: 16
+# tig → gb: 16
+# tig → gch master: 16
+# tig → yarn tsc: 16
+# tig → clean: 15
 ```
 
 ## Options
 
-#### `path`
+#### `--minCount` (`-m`)
 
-Path to a plaintext history file.
+Minimum number of matches needed to be displayed, to reduce noise.
 
-#### `runLength`
+Defaults to `5`.
 
-Number of commands that make up a sequence. Must be greater than one, and should generally be less than 3 for realistic data.
+#### `--runLength` (`-r`)
+
+Number of commands that make up a sequence. Must be greater than one, and should generally be less than 3 for realistic data. For example, a run length of 3 will print repeated sequences of three commands.
+
+Defaults to `2`.
+
+#### `--wordCount` (`-w`)
+
+Number of words to pull from commands for analysis.
+
+Defaults to `2`.
 
 ## TODO
 
-* [ ] Change CLI arguments into flags
+* [x] Change CLI arguments into flags

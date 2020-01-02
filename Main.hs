@@ -3,7 +3,6 @@ module Main where
 import           Data.Char                      ( isSpace )
 import           Data.Function                  ( on )
 import           Data.List                      ( intercalate
-                                                , isPrefixOf
                                                 , sortBy
                                                 )
 import           Data.Map                       ( Map
@@ -12,13 +11,53 @@ import           Data.Map                       ( Map
                                                 , toList
                                                 )
 import           Data.Ord                       ( Down(..) )
-import           System.Directory               ( canonicalizePath
-                                                , getHomeDirectory
-                                                )
+import           System.Console.GetOpt
+import           System.Directory               ( canonicalizePath )
 import           System.Environment             ( getArgs )
-import           System.Exit
-import           System.FilePath                ( joinPath )
-import           System.IO
+import           System.Exit                    ( die
+                                                , exitSuccess
+                                                )
+import           System.FilePath                ( isValid )
+
+data Options = Options { optMinCount  :: Int
+                       , optRunLength :: Int
+                       , optWordCount :: Int
+                       }
+
+defaultOptions :: Options
+defaultOptions =
+  Options { optMinCount = 5, optRunLength = 2, optWordCount = 2 }
+
+options :: [OptDescr (Options -> Options)]
+options =
+  [ Option ['m']
+           ["minCount"]
+           (ReqArg (\arg opt -> opt { optMinCount = read arg }) "N")
+           "Minimum number of matches needed to be displayed"
+  , Option ['r']
+           ["runLength"]
+           (ReqArg (\arg opt -> opt { optRunLength = read arg }) "N")
+           "Number of commands to use for sequences"
+  , Option ['w']
+           ["wordCount"]
+           (ReqArg (\arg opt -> opt { optWordCount = read arg }) "N")
+           "Number of words taken from commands"
+  ]
+
+exitWithError :: String -> IO a
+exitWithError m = die
+  (m ++ usageInfo "Usage: chain-of-command -m [N] -r [N] -w [N] [PATH]" options)
+
+-- | Translates argv into an `Option` record and grabs file path.
+-- We use the first non-option as the file path and ignore the rest.
+parseOptions :: [String] -> IO (Options, FilePath)
+parseOptions argv = case getOpt RequireOrder options argv of
+  (actions, nonOptions, []) -> case nonOptions of
+    []         -> exitWithError "path to history not provided\n"
+    (path : _) -> if isValid path
+      then return (foldl (flip id) defaultOptions actions, path)
+      else exitWithError $ "invalid path: " ++ path ++ "\n"
+  (_, _, errors) -> exitWithError $ concat errors
 
 -- | Converts .bash_history or similar to list of commands
 -- Commands are retrieved by taking first n words of a line
@@ -56,7 +95,7 @@ countMapToSortedList = sortBy (compare `on` Down . snd) . toList
 -- | Remove sequences that occur less than n times
 -- These are also noise
 filterLowCounts :: Int -> [([a], Int)] -> [([a], Int)]
-filterLowCounts count = filter ((> count) . snd)
+filterLowCounts count = filter ((>= count) . snd)
 
 -- | Pretty-prints sorted list of sequences
 prettyPrint :: [([String], Int)] -> String
@@ -64,37 +103,20 @@ prettyPrint =
   intercalate "\n" . map (\(s, n) -> intercalate " → " s ++ ": " ++ show n)
 
 -- | Final composed function
-countCommonSequences :: Int -> String -> String
-countCommonSequences runLength =
-  prettyPrint
-    . filterLowCounts 1
+countCommonSequences :: Options -> String -> String
+countCommonSequences Options { optMinCount = minCount, optRunLength = runLength, optWordCount = wordCount }
+  = prettyPrint
+    . filterLowCounts minCount
     . countMapToSortedList
     . sequencesToCountMap
     . removeDupeSequences
     . sequencify runLength
     . filterWhitespace
-    . parseHistory 2
-
--- | Helper to resolve paths with tildes
--- Is there really not a library for this?
-makeAbsolute :: String -> IO FilePath
-makeAbsolute path = do
-  homeDir <- getHomeDirectory
-  if "~/" `isPrefixOf` path
-    then return (joinPath [homeDir, drop 2 path])
-    else return path
+    . parseHistory wordCount
 
 main :: IO ()
 main = do
-    -- TODO replace this with command line flag
-    -- TODO make filterLowCounts and parseHistory also configurable via flags
-  args <- getArgs
-  case args of
-    [path, runLength] -> do
-      file <- readFile =<< canonicalizePath =<< makeAbsolute path
-      putStrLn $ countCommonSequences (read runLength) file
-      exitSuccess
-    _ -> do
-      hPutStrLn stderr
-                "Error: Values must be provided for `path` and `runLength`."
-      exitFailure
+  (opts, path) <- getArgs >>= parseOptions
+  file         <- canonicalizePath path >>= readFile
+  putStrLn $ countCommonSequences opts file
+  exitSuccess
