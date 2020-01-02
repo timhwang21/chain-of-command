@@ -1,17 +1,34 @@
 # Chain of Command
 
-[![asciicast](https://asciinema.org/a/eatpLhfcSLxYx2bMJRATnjhGF.svg)](https://asciinema.org/a/eatpLhfcSLxYx2bMJRATnjhGF)
+[![asciicast](https://asciinema.org/a/JyiFGL7fx9I0e0KswRolLJycm.svg)](https://asciinema.org/a/JyiFGL7fx9I0e0KswRolLJycm)
 
 Analyzes your `.bash_history` or similar file to identify commonly reoccurring sequences and workflows that may benefit from extraction into functions or aliases.
+
+## Installation
+
+```shell
+git clone https://github.com/timhwang21/chain-of-command/
+cd chain-of-command
+
+# You can call the executable directly
+./bin/coc [options]
+
+# You can run Main.hs as a script if you have Haskell installed
+runhaskell Main.hs
+
+# Optionally, you can make this accessible in $PATH
+ln -s $( pwd )/bin/coc /usr/local/bin/coc
+coc [options]
+```
 
 ## Usage
 
 ```shell
 # Passing file path
-./bin/coc -f ~/.bash_history
+coc -f ~/.bash_history
 
 # Reading from stdin -- useful for filtering common commands
-cat ~/.bash_history | grep -v "git" | ./bin/coc
+cat ~/.bash_history | grep -v "git" | coc
 ```
 
 ## Options
@@ -39,8 +56,6 @@ Number of words to pull from commands for analysis.
 Defaults to `2`.
 
 ## Sample Output
-
-Note that these examples make the `coc` executable accessible in `PATH`.
 
 ```shell
 coc -f ~/.bash_history | head -5
