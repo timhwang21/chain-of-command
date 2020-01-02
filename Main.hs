@@ -17,20 +17,24 @@ import           System.Environment             ( getArgs )
 import           System.Exit                    ( die
                                                 , exitSuccess
                                                 )
-import           System.FilePath                ( isValid )
 
-data Options = Options { optMinCount  :: Int
+data Options = Options { optFile      :: String
+                       , optMinCount  :: Int
                        , optRunLength :: Int
                        , optWordCount :: Int
                        }
 
 defaultOptions :: Options
 defaultOptions =
-  Options { optMinCount = 5, optRunLength = 2, optWordCount = 2 }
+  Options { optFile = "", optMinCount = 5, optRunLength = 2, optWordCount = 2 }
 
 options :: [OptDescr (Options -> Options)]
 options =
-  [ Option ['m']
+  [ Option ['f']
+           ["file"]
+           (ReqArg (\arg opt -> opt { optFile = arg }) "PATH")
+           "Path to history file to analyze"
+  , Option ['m']
            ["minCount"]
            (ReqArg (\arg opt -> opt { optMinCount = read arg }) "N")
            "Minimum number of matches needed to be displayed"
@@ -45,19 +49,14 @@ options =
   ]
 
 exitWithError :: String -> IO a
-exitWithError m = die
-  (m ++ usageInfo "Usage: chain-of-command -m [N] -r [N] -w [N] [PATH]" options)
+exitWithError m = die (m ++ usageInfo "Usage: coc [options] [input]" options)
 
 -- | Translates argv into an `Option` record and grabs file path.
 -- We use the first non-option as the file path and ignore the rest.
-parseOptions :: [String] -> IO (Options, FilePath)
+parseOptions :: [String] -> IO Options
 parseOptions argv = case getOpt RequireOrder options argv of
-  (actions, nonOptions, []) -> case nonOptions of
-    []         -> exitWithError "path to history not provided\n"
-    (path : _) -> if isValid path
-      then return (foldl (flip id) defaultOptions actions, path)
-      else exitWithError $ "invalid path: " ++ path ++ "\n"
-  (_, _, errors) -> exitWithError $ concat errors
+  (actions, _, []    ) -> return (foldl (flip id) defaultOptions actions)
+  (_      , _, errors) -> exitWithError $ concat errors
 
 -- | Converts .bash_history or similar to list of commands
 -- Commands are retrieved by taking first n words of a line
@@ -116,7 +115,9 @@ countCommonSequences Options { optMinCount = minCount, optRunLength = runLength,
 
 main :: IO ()
 main = do
-  (opts, path) <- getArgs >>= parseOptions
-  file         <- canonicalizePath path >>= readFile
+  opts <- getArgs >>= parseOptions
+  file <- if null $ optFile opts
+    then getContents
+    else (canonicalizePath . optFile) opts >>= readFile
   putStrLn $ countCommonSequences opts file
   exitSuccess

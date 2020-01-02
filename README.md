@@ -7,10 +7,18 @@ Analyzes your `.bash_history` or similar file to identify commonly reoccurring s
 ## Usage
 
 ```shell
-./bin/coc ~/.bash_history
+# Passing file path
+./bin/coc -f ~/.bash_history
+
+# Reading from stdin -- useful for filtering common commands
+cat ~/.bash_history | grep -v "git" | ./bin/coc
 ```
 
 ## Options
+
+#### `--file` (`-f`)
+
+Path to history file. Overrides `STDIN`.
 
 #### `--minCount` (`-m`)
 
@@ -20,7 +28,7 @@ Defaults to `5`.
 
 #### `--runLength` (`-r`)
 
-Number of commands that make up a sequence. Must be greater than one, and should generally be less than 3 for realistic data. For example, a run length of 3 will print repeated sequences of three commands.
+Number of commands that make up a sequence. Must be greater than one, and should generally be less than 3 for realisticcdata. For example, a run length of 3 will print repeated sequences of three commands.
 
 Defaults to `2`.
 
@@ -33,21 +41,21 @@ Defaults to `2`.
 ## Sample Output
 
 ```shell
-./bin/coc ~/.bash_history | head -5
+./bin/coc -f ~/.bash_history | head -5
 # v → tig: 214
 # git fetch → grom: 171
 # tig → v: 96
 # tig → amend: 79
 # tig → git fetch: 44
 
-./bin/coc ~/.bash_history --runLength=5 | head -5
+./bin/coc -f ~/.bash_history --runLength=5 | head -5
 # tig → amend → tig → amend → tig: 7
 # git fetch → grom → gp -f → v → tig: 6
 # tig → git stash → gch master → git fetch → grom: 6
 # tig → v → tig → v → tig: 6
 # tig → amend → git fetch → grom → gp -f: 5
 
-./bin/coc ~/.bash_history --minCount=15 | tail -5
+./bin/coc -f ~/.bash_history --minCount=15 | tail -5
 # tig → ga: 16
 # tig → gb: 16
 # tig → gch master: 16
