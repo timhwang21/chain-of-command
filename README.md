@@ -7,32 +7,7 @@ Analyzes your `.bash_history` or similar file to identify commonly reoccurring s
 ## Usage
 
 ```shell
-./bin/chain-of-command ~/.bash_history
-```
-
-## Sample Output
-
-```shell
-./bin/chain-of-command ~/.bash_history | head -5
-# v → tig: 214
-# git fetch → grom: 171
-# tig → v: 96
-# tig → amend: 79
-# tig → git fetch: 44
-
-./bin/chain-of-command ~/.bash_history --runLength=5 | head -5
-# tig → amend → tig → amend → tig: 7
-# git fetch → grom → gp -f → v → tig: 6
-# tig → git stash → gch master → git fetch → grom: 6
-# tig → v → tig → v → tig: 6
-# tig → amend → git fetch → grom → gp -f: 5
-
-./bin/chain-of-command ~/.bash_history --minCount=15 | tail -5
-# tig → ga: 16
-# tig → gb: 16
-# tig → gch master: 16
-# tig → yarn tsc: 16
-# tig → clean: 15
+./bin/coc ~/.bash_history
 ```
 
 ## Options
@@ -55,14 +30,35 @@ Number of words to pull from commands for analysis.
 
 Defaults to `2`.
 
+## Sample Output
+
+```shell
+./bin/coc ~/.bash_history | head -5
+# v → tig: 214
+# git fetch → grom: 171
+# tig → v: 96
+# tig → amend: 79
+# tig → git fetch: 44
+
+./bin/coc ~/.bash_history --runLength=5 | head -5
+# tig → amend → tig → amend → tig: 7
+# git fetch → grom → gp -f → v → tig: 6
+# tig → git stash → gch master → git fetch → grom: 6
+# tig → v → tig → v → tig: 6
+# tig → amend → git fetch → grom → gp -f: 5
+
+./bin/coc ~/.bash_history --minCount=15 | tail -5
+# tig → ga: 16
+# tig → gb: 16
+# tig → gch master: 16
+# tig → yarn tsc: 16
+# tig → clean: 15
+```
+
 ## Development
 
 ### Build
 
 ```shell
-ghc -o bin/chain-of-command Main.hs
+ghc -o bin/coc Main.hs
 ```
-
-### TODO
-
-* [x] Change CLI arguments into flags
