@@ -35,7 +35,7 @@ cat ~/.bash_history | grep -v "git" | coc
 
 #### `--file` (`-f`)
 
-Path to history file. Overrides `STDIN`.
+Path to history file. Overrides `STDIN`. If not supplied, a history file must be piped to `coc`.
 
 #### `--minCount` (`-m`)
 
@@ -45,13 +45,13 @@ Defaults to `5`.
 
 #### `--runLength` (`-r`)
 
-Number of commands that make up a sequence. Must be greater than one, and should generally be less than 3 for realisticcdata. For example, a run length of 3 will print repeated sequences of three commands.
+Number of commands that make up a sequence. Must be greater than one, and should generally be less than 3 for realistic data. For example, a run length of 3 will print repeated sequences of three commands.
 
 Defaults to `2`.
 
 #### `--wordCount` (`-w`)
 
-Number of words to pull from commands for analysis.
+Number of words to pull from commands for analysis. Flags are also treated as words. For example, if `-w 1` is passed, `git push`, `git pull`, `git fetch` would all be counted as `git`. With `-w 2`, `git push` and `git push -f` would both be treated as the same command.
 
 Defaults to `2`.
 
